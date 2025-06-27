@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCamera, FaRedo, FaSpinner, FaHome } from 'react-icons/fa'
@@ -15,6 +15,7 @@ export default function CapturePage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [analysisProgress, setAnalysisProgress] = useState(0)
 
   const handleStartCamera = async () => {
     setCapturedImage(null)
@@ -28,6 +29,8 @@ export default function CapturePage() {
     if (imageData) {
       setCapturedImage(imageData)
       stopCamera()
+      // Automatically start analysis after capture
+      handleAnalyze(imageData)
     }
   }
 
@@ -38,20 +41,33 @@ export default function CapturePage() {
     startCamera()
   }
 
-  const handleAnalyze = async () => {
-    if (!capturedImage) return
+  const handleAnalyze = async (imageData?: string) => {
+    const image = imageData || capturedImage
+    if (!image) return
 
     setIsAnalyzing(true)
     setAnalysisError(null)
+    setAnalysisProgress(0)
+
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setAnalysisProgress(prev => {
+        if (prev >= 90) return prev
+        return prev + Math.random() * 20
+      })
+    }, 500)
 
     try {
-      const result = await analyzeImage(capturedImage)
+      const result = await analyzeImage(image)
+      setAnalysisProgress(100)
       setAnalysisResult(result)
     } catch (err) {
       setAnalysisError('Failed to analyze image. Please try again.')
       console.error('Analysis error:', err)
     } finally {
+      clearInterval(progressInterval)
       setIsAnalyzing(false)
+      setAnalysisProgress(0)
     }
   }
 
@@ -147,25 +163,29 @@ export default function CapturePage() {
               )}
             </AnimatePresence>
 
-            {/* Overlay Controls */}
+            {/* Camera Streaming Indicator */}
             {!capturedImage && isStreaming && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent p-6"
+                className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2"
               >
-                <button
-                  onClick={handleCapture}
-                  className="mx-auto block bg-white text-purple-600 w-20 h-20 rounded-full shadow-2xl hover:shadow-3xl transform transition hover:scale-110 flex items-center justify-center"
-                >
-                  <FaCamera className="text-3xl" />
-                </button>
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                Live
               </motion.div>
             )}
           </div>
 
           {/* Action Buttons */}
           <div className="mt-6 flex justify-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition hover:scale-105"
+            >
+              <FaHome className="inline mr-2" />
+              Home
+            </button>
+
             <AnimatePresence mode="wait">
               {!isStreaming && !capturedImage && (
                 <motion.button
@@ -181,7 +201,21 @@ export default function CapturePage() {
                 </motion.button>
               )}
 
-              {capturedImage && !analysisResult && (
+              {isStreaming && !capturedImage && (
+                <motion.button
+                  key="capture"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  onClick={handleCapture}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform transition hover:scale-105"
+                >
+                  <FaCamera className="inline mr-2" />
+                  Capture Photo
+                </motion.button>
+              )}
+
+              {capturedImage && !analysisResult && !isAnalyzing && (
                 <motion.div
                   key="analyze"
                   initial={{ opacity: 0, y: 20 }}
@@ -196,31 +230,9 @@ export default function CapturePage() {
                     <FaRedo className="inline mr-2" />
                     Retake
                   </button>
-                  <button
-                    onClick={handleAnalyze}
-                    disabled={isAnalyzing}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform transition hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <FaSpinner className="inline mr-2 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      'Analyze My Spirit Animal'
-                    )}
-                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
-
-            <button
-              onClick={() => navigate('/')}
-              className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition hover:scale-105"
-            >
-              <FaHome className="inline mr-2" />
-              Home
-            </button>
           </div>
         </motion.div>
 
@@ -233,14 +245,39 @@ export default function CapturePage() {
               exit={{ opacity: 0, y: -20 }}
               className="text-center"
             >
-              <div className="inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-xl">
+              <div className="inline-flex flex-col items-center gap-4 bg-white/80 backdrop-blur-sm rounded-3xl px-12 py-8 shadow-xl">
                 <div className="relative">
-                  <div className="w-16 h-16 border-4 border-purple-200 rounded-full animate-pulse"></div>
-                  <div className="absolute inset-0 w-16 h-16 border-4 border-purple-600 rounded-full animate-spin border-t-transparent"></div>
+                  <svg className="w-32 h-32 transform -rotate-90">
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="60"
+                      fill="none"
+                      stroke="#e9d5ff"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="60"
+                      fill="none"
+                      stroke="#9333ea"
+                      strokeWidth="8"
+                      strokeDasharray={`${2 * Math.PI * 60}`}
+                      strokeDashoffset={`${2 * Math.PI * 60 * (1 - analysisProgress / 100)}`}
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-purple-600">{Math.round(analysisProgress)}%</p>
+                      <p className="text-xs text-gray-600">Processing</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-left">
+                <div className="text-center">
                   <p className="font-semibold text-gray-800">AI is analyzing your spirit...</p>
-                  <p className="text-sm text-gray-600">This may take a few moments</p>
+                  <p className="text-sm text-gray-600">Discovering your inner animal character</p>
                 </div>
               </div>
             </motion.div>
