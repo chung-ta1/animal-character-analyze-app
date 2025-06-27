@@ -11,7 +11,7 @@ console.log('API Base URL:', API_BASE_URL)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 60000, // Increase timeout to 60 seconds
 })
 
 // Add request interceptor for debugging
@@ -22,6 +22,22 @@ api.interceptors.request.use(
   },
   (error) => {
     console.error('API Request Error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.config.url)
+    return response
+  },
+  (error) => {
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout - the server might be starting up or processing is taking too long')
+      error.message = 'The analysis is taking longer than expected. The server might be starting up (free tier). Please try again in a moment.'
+    }
+    console.error('API Response Error:', error.message)
     return Promise.reject(error)
   }
 )

@@ -64,8 +64,9 @@ export default function CapturePage() {
       const result = await analyzeImage(image)
       setAnalysisProgress(100)
       setAnalysisResult(result)
-    } catch (err) {
-      setAnalysisError('Failed to analyze image. Please try again.')
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to analyze image. Please try again.'
+      setAnalysisError(errorMessage)
       console.error('Analysis error:', err)
     } finally {
       clearInterval(progressInterval)
