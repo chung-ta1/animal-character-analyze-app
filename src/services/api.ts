@@ -11,7 +11,7 @@ console.log('API Base URL:', API_BASE_URL)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // Increase timeout to 60 seconds
+  timeout: 300000, // Increase timeout to 5 minutes for Claude API
 })
 
 // Add request interceptor for debugging
@@ -34,8 +34,8 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.code === 'ECONNABORTED') {
-      console.error('Request timeout - the server might be starting up or processing is taking too long')
-      error.message = 'The analysis is taking longer than expected. The server might be starting up (free tier). Please try again in a moment.'
+      console.error('Request timeout - Claude API processing is taking longer than expected')
+      error.message = 'The AI analysis is taking longer than expected (Claude API can take 2-3 minutes). The request timed out after 5 minutes. Please try again with a smaller image or simpler photo.'
     }
     console.error('API Response Error:', error.message)
     return Promise.reject(error)

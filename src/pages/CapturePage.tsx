@@ -281,7 +281,16 @@ export default function CapturePage() {
                 </div>
                 <div className="text-center">
                   <p className="font-semibold text-gray-800">AI is analyzing your spirit...</p>
-                  <p className="text-sm text-gray-600">Discovering your inner animal character</p>
+                  <p className="text-sm text-gray-600">
+                    {analysisProgress < 30 
+                      ? "Discovering your inner animal character"
+                      : analysisProgress < 60
+                      ? "Processing with Claude AI (this may take 2-3 minutes)"
+                      : "Almost there... Claude is crafting your personalized story"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Please be patient - AI analysis can take up to 3 minutes
+                  </p>
                 </div>
               </div>
             </motion.div>
