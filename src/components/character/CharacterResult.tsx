@@ -111,7 +111,7 @@ export default function CharacterResult({ result, onShare, onReset }: CharacterR
           Your Story
         </h3>
         <p className="text-gray-700 leading-relaxed text-lg">
-          {result.story}
+          {result.personalizedStory || result.reasoning}
         </p>
       </motion.div>
 

@@ -1,16 +1,18 @@
 export interface Character {
   id: string
   name: string
-  species: string
+  emoji?: string
+  species?: string
   traits: string[]
-  imageUrl: string
+  description?: string
+  baseStory?: string
 }
 
 export interface AnalysisResult {
   character: Character
-  story: string
   confidence: number
   reasoning?: string
+  personalizedStory?: string
 }
 
 export interface AnalysisState {
