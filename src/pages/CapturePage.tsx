@@ -52,11 +52,14 @@ export default function CapturePage() {
     setAnalysisError(null)
     setAnalysisProgress(0)
 
-    // Simulate progress updates
+    // Simulate progress updates with compression phase
     const progressInterval = setInterval(() => {
       setAnalysisProgress(prev => {
         if (prev >= 90) return prev
-        return prev + Math.random() * 20
+        // Faster progress for compression phase (0-10%)
+        if (prev < 10) return prev + Math.random() * 5
+        // Slower progress for API processing (10-90%)
+        return prev + Math.random() * 15
       })
     }, 500)
 
@@ -282,10 +285,12 @@ export default function CapturePage() {
                 <div className="text-center">
                   <p className="font-semibold text-gray-800">AI is analyzing your spirit...</p>
                   <p className="text-sm text-gray-600">
-                    {analysisProgress < 30 
+                    {analysisProgress < 10 
+                      ? "Optimizing image for faster processing..."
+                      : analysisProgress < 30 
                       ? "Discovering your inner animal character"
                       : analysisProgress < 60
-                      ? "Processing with Claude AI (this may take 2-3 minutes)"
+                      ? "Processing with Claude AI (this may take 1-2 minutes)"
                       : "Almost there... Claude is crafting your personalized story"}
                   </p>
                   <p className="text-xs text-gray-500 mt-2">
