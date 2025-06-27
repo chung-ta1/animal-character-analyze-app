@@ -16,6 +16,9 @@ export default function CapturePage() {
   const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [analysisProgress, setAnalysisProgress] = useState(0)
+  
+  // Debug: Log API URL
+  console.log('API URL:', import.meta.env.VITE_API_URL || 'Not set')
 
   const handleStartCamera = async () => {
     setCapturedImage(null)
