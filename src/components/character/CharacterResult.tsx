@@ -8,21 +8,158 @@ interface CharacterResultProps {
   onReset: () => void
 }
 
-const animalEmojis: Record<string, string> = {
-  'wise-owl': '🦉',
-  'playful-otter': '🦦',
-  'noble-lion': '🦁',
-  'curious-fox': '🦊',
-  'gentle-deer': '🦌',
-  'mighty-dragon': '🐉',
-  'loyal-wolf': '🐺',
-  'free-eagle': '🦅',
-  'creative-peacock': '🦚',
-  'steady-turtle': '🐢'
+// Dynamic emoji mapping based on animal names
+const getAnimalEmoji = (name: string): string => {
+  const lowerName = name.toLowerCase()
+  
+  // Check for specific animals in the name
+  // Wild cats
+  if (lowerName.includes('lion')) return '🦁'
+  if (lowerName.includes('tiger')) return '🐅'
+  if (lowerName.includes('leopard')) return '🐆'
+  if (lowerName.includes('cheetah')) return '🐆'
+  if (lowerName.includes('panther')) return '🐈‍⬛'
+  if (lowerName.includes('lynx')) return '🐈'
+  if (lowerName.includes('cat')) return '🐱'
+  
+  // Bears
+  if (lowerName.includes('bear')) return '🐻'
+  if (lowerName.includes('polar bear')) return '🐻‍❄️'
+  if (lowerName.includes('panda')) return '🐼'
+  
+  // Canines
+  if (lowerName.includes('wolf')) return '🐺'
+  if (lowerName.includes('fox')) return '🦊'
+  if (lowerName.includes('dog')) return '🐕'
+  if (lowerName.includes('husky')) return '🐺'
+  if (lowerName.includes('coyote')) return '🐺'
+  
+  // Birds
+  if (lowerName.includes('owl')) return '🦉'
+  if (lowerName.includes('eagle')) return '🦅'
+  if (lowerName.includes('hawk')) return '🦅'
+  if (lowerName.includes('falcon')) return '🦅'
+  if (lowerName.includes('peacock')) return '🦚'
+  if (lowerName.includes('swan')) return '🦢'
+  if (lowerName.includes('flamingo')) return '🦩'
+  if (lowerName.includes('parrot')) return '🦜'
+  if (lowerName.includes('dove')) return '🕊️'
+  if (lowerName.includes('rooster')) return '🐓'
+  if (lowerName.includes('chicken')) return '🐔'
+  if (lowerName.includes('duck')) return '🦆'
+  if (lowerName.includes('penguin')) return '🐧'
+  if (lowerName.includes('bird')) return '🐦'
+  
+  // Marine life
+  if (lowerName.includes('dolphin')) return '🐬'
+  if (lowerName.includes('whale')) return '🐋'
+  if (lowerName.includes('shark')) return '🦈'
+  if (lowerName.includes('octopus')) return '🐙'
+  if (lowerName.includes('squid')) return '🦑'
+  if (lowerName.includes('jellyfish')) return '🪼'
+  if (lowerName.includes('seal')) return '🦭'
+  if (lowerName.includes('otter')) return '🦦'
+  if (lowerName.includes('fish')) return '🐠'
+  if (lowerName.includes('goldfish')) return '🐠'
+  if (lowerName.includes('tropical fish')) return '🐠'
+  if (lowerName.includes('lobster')) return '🦞'
+  if (lowerName.includes('crab')) return '🦀'
+  if (lowerName.includes('shrimp')) return '🦐'
+  
+  // Reptiles & Amphibians
+  if (lowerName.includes('turtle')) return '🐢'
+  if (lowerName.includes('tortoise')) return '🐢'
+  if (lowerName.includes('snake')) return '🐍'
+  if (lowerName.includes('lizard')) return '🦎'
+  if (lowerName.includes('gecko')) return '🦎'
+  if (lowerName.includes('chameleon')) return '🦎'
+  if (lowerName.includes('crocodile')) return '🐊'
+  if (lowerName.includes('alligator')) return '🐊'
+  if (lowerName.includes('frog')) return '🐸'
+  if (lowerName.includes('dragon')) return '🐉'
+  
+  // Hoofed animals
+  if (lowerName.includes('horse')) return '🐴'
+  if (lowerName.includes('unicorn')) return '🦄'
+  if (lowerName.includes('zebra')) return '🦓'
+  if (lowerName.includes('deer')) return '🦌'
+  if (lowerName.includes('moose')) return '🦌'
+  if (lowerName.includes('elk')) return '🦌'
+  if (lowerName.includes('giraffe')) return '🦒'
+  if (lowerName.includes('llama')) return '🦙'
+  if (lowerName.includes('alpaca')) return '🦙'
+  if (lowerName.includes('camel')) return '🐪'
+  if (lowerName.includes('cow')) return '🐄'
+  if (lowerName.includes('ox')) return '🐂'
+  if (lowerName.includes('buffalo')) return '🦬'
+  if (lowerName.includes('bison')) return '🦬'
+  if (lowerName.includes('pig')) return '🐷'
+  if (lowerName.includes('boar')) return '🐗'
+  if (lowerName.includes('sheep')) return '🐑'
+  if (lowerName.includes('goat')) return '🐐'
+  if (lowerName.includes('ram')) return '🐏'
+  
+  // Primates
+  if (lowerName.includes('monkey')) return '🐵'
+  if (lowerName.includes('gorilla')) return '🦍'
+  if (lowerName.includes('orangutan')) return '🦧'
+  if (lowerName.includes('chimpanzee')) return '🐵'
+  
+  // Small mammals
+  if (lowerName.includes('rabbit')) return '🐰'
+  if (lowerName.includes('bunny')) return '🐰'
+  if (lowerName.includes('hare')) return '🐰'
+  if (lowerName.includes('mouse')) return '🐭'
+  if (lowerName.includes('rat')) return '🐀'
+  if (lowerName.includes('hamster')) return '🐹'
+  if (lowerName.includes('squirrel')) return '🐿️'
+  if (lowerName.includes('chipmunk')) return '🐿️'
+  if (lowerName.includes('beaver')) return '🦫'
+  if (lowerName.includes('hedgehog')) return '🦔'
+  if (lowerName.includes('bat')) return '🦇'
+  
+  // Large mammals
+  if (lowerName.includes('elephant')) return '🐘'
+  if (lowerName.includes('mammoth')) return '🦣'
+  if (lowerName.includes('rhino')) return '🦏'
+  if (lowerName.includes('hippo')) return '🦛'
+  
+  // Australian animals
+  if (lowerName.includes('koala')) return '🐨'
+  if (lowerName.includes('kangaroo')) return '🦘'
+  
+  // Insects & Small creatures
+  if (lowerName.includes('butterfly')) return '🦋'
+  if (lowerName.includes('bee')) return '🐝'
+  if (lowerName.includes('ladybug')) return '🐞'
+  if (lowerName.includes('beetle')) return '🪲'
+  if (lowerName.includes('ant')) return '🐜'
+  if (lowerName.includes('spider')) return '🕷️'
+  if (lowerName.includes('scorpion')) return '🦂'
+  if (lowerName.includes('snail')) return '🐌'
+  if (lowerName.includes('worm')) return '🪱'
+  
+  // Mythical/Fantasy
+  if (lowerName.includes('phoenix')) return '🔥'
+  if (lowerName.includes('griffin')) return '🦅'
+  if (lowerName.includes('pegasus')) return '🦄'
+  
+  // Other unique animals
+  if (lowerName.includes('sloth')) return '🦥'
+  if (lowerName.includes('badger')) return '🦡'
+  if (lowerName.includes('raccoon')) return '🦝'
+  if (lowerName.includes('skunk')) return '🦨'
+  if (lowerName.includes('opossum')) return '🐾'
+  if (lowerName.includes('peacock')) return '🦚'
+  if (lowerName.includes('turkey')) return '🦃'
+  if (lowerName.includes('dodo')) return '🦤'
+  
+  // Default emoji
+  return '🌟'
 }
 
 export default function CharacterResult({ result, onShare, onReset }: CharacterResultProps) {
-  const emoji = animalEmojis[result.character.id] || '🌟'
+  const emoji = getAnimalEmoji(result.character.name)
   const confidencePercent = Math.round(result.confidence * 100)
 
   return (
@@ -39,6 +176,7 @@ export default function CharacterResult({ result, onShare, onReset }: CharacterR
         transition={{ delay: 0.2, duration: 0.6 }}
         className="text-center"
       >
+        {/* Animal Emoji Display */}
         <motion.div
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
@@ -46,6 +184,7 @@ export default function CharacterResult({ result, onShare, onReset }: CharacterR
         >
           {emoji}
         </motion.div>
+        
         <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
           You're a {result.character.name}!
         </h2>
@@ -99,20 +238,37 @@ export default function CharacterResult({ result, onShare, onReset }: CharacterR
         </div>
       </motion.div>
 
-      {/* Story */}
+      {/* Analysis & Story */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.6 }}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl"
+        className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl space-y-4"
       >
         <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
           <FaHeart className="text-red-500" />
-          Your Story
+          Your Analysis
         </h3>
-        <p className="text-gray-700 leading-relaxed text-lg">
-          {result.personalizedStory || result.reasoning}
-        </p>
+        
+        {/* Reasoning */}
+        {result.reasoning && (
+          <div className="pb-4 border-b border-gray-200">
+            <h4 className="text-lg font-semibold text-gray-800 mb-2">Why this animal?</h4>
+            <p className="text-gray-700 leading-relaxed">
+              {result.reasoning}
+            </p>
+          </div>
+        )}
+        
+        {/* Personalized Story */}
+        {result.personalizedStory && (
+          <div>
+            <h4 className="text-lg font-semibold text-gray-800 mb-2">Your Story</h4>
+            <p className="text-gray-700 leading-relaxed text-lg">
+              {result.personalizedStory}
+            </p>
+          </div>
+        )}
       </motion.div>
 
       {/* Action Buttons */}

@@ -113,3 +113,6 @@ export const getCharacters = async () => {
   const response = await api.get('/characters')
   return response.data
 }
+
+// Export the api instance as default for other components to use
+export default api
