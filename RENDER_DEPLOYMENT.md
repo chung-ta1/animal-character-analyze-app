@@ -1,411 +1,339 @@
 # Deploying Animal Character Analyzer Frontend to Render
 
-This guide provides step-by-step instructions to deploy the React TypeScript frontend to Render as a static site or Docker container.
+This guide provides step-by-step instructions to deploy the Animal Character Analyzer frontend as a Docker container on Render.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Option 1: Static Site Deployment](#option-1-deploy-as-static-site-recommended)
-- [Option 2: Docker Deployment](#option-2-deploy-as-docker-container)
-- [Post-Deployment](#post-deployment-steps)
+- [Detailed Deployment Steps](#detailed-deployment-steps)
+- [Environment Configuration](#environment-configuration)
+- [Post-Deployment](#post-deployment)
 - [Troubleshooting](#troubleshooting)
+- [Updating Your Deployment](#updating-your-deployment)
 
 ## Prerequisites
 
 - GitHub account with the frontend code repository
 - Render account ([Sign up free](https://render.com/))
-- Backend service URL (e.g., `https://animal-character-analyzer-api.onrender.com`)
-- Node.js 18+ installed locally for testing
+- Backend service deployed and accessible (e.g., `https://animal-character-analyzer-api.onrender.com`)
 
 ## Quick Start
 
-For the fastest deployment, use our deployment script:
+1. Push your code to GitHub
+2. Go to [Render Dashboard](https://dashboard.render.com/)
+3. Click **"New +"** → **"Web Service"**
+4. Connect your GitHub repository
+5. Choose **Docker** as the environment
+6. Set `VITE_API_URL` to your backend URL
+7. Deploy!
+
+## Detailed Deployment Steps
+
+### Step 1: Prepare Your Repository
+
+Ensure your repository contains these files:
+- `Dockerfile` (already created)
+- `nginx.conf` (already created)
+- `.dockerignore` (already created)
 
 ```bash
-# Run with your backend URL
-./deploy-to-render.sh https://your-backend-api.onrender.com
+# Verify files exist
+ls Dockerfile nginx.conf .dockerignore
 
-# Or use default localhost for testing
-./deploy-to-render.sh
-```
-
-## Option 1: Deploy as Static Site (Recommended)
-
-### Complete Step-by-Step Guide
-
-#### Step 1: Prepare Your Repository
-
-1. **Ensure all files are committed**:
-   ```bash
-   git add .
-   git commit -m "Prepare for Render deployment"
-   ```
-
-2. **Verify render.yaml exists** (already created):
-   ```bash
-   cat render.yaml
-   ```
-
-3. **Set up environment file**:
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your backend URL
-   ```
-
-#### Step 2: Push to GitHub
-
-```bash
-# If you haven't set up remote yet
-git remote add origin https://github.com/YOUR_USERNAME/animal-character-analyze-app.git
-
-# Push your code
-git push -u origin main
-# or if using mvp-1.0 branch
-git push -u origin mvp-1.0
-```
-
-#### Step 3: Create Static Site on Render
-
-1. **Go to [Render Dashboard](https://dashboard.render.com/)**
-
-2. **Click "New +" → "Static Site"**
-
-3. **Connect GitHub**:
-   - Click "Connect account" if first time
-   - Authorize Render to access your repositories
-
-4. **Select Repository**:
-   - Search for `animal-character-analyze-app`
-   - Click "Connect"
-
-5. **Configure Your Static Site**:
-   - **Name**: `animal-character-analyzer` (or your preferred name)
-   - **Branch**: `main` or `mvp-1.0`
-   - **Build Command**: `npm install && npm run build`
-   - **Publish Directory**: `dist`
-   - **Auto-Deploy**: Yes (recommended)
-
-6. **Add Environment Variables**:
-   Click "Advanced" and add:
-   - **Key**: `VITE_API_URL`
-   - **Value**: `https://your-backend-api.onrender.com` (your backend URL)
-
-7. **Click "Create Static Site"**
-
-The deployment will start automatically!
-
-### Step 4: Using render.yaml (Alternative)
-
-If you have `render.yaml` in your repository:
-
-```yaml
-services:
-  - type: web
-    name: animal-character-analyzer-app
-    runtime: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    headers:
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        value: https://your-backend-service.onrender.com
-      - key: NODE_VERSION
-        value: 18
-```
-
-### Step 2: Deploy via Render Dashboard
-
-1. Log in to [Render Dashboard](https://dashboard.render.com/)
-2. Click **"New +"** → **"Static Site"**
-3. Connect your GitHub repository
-4. Configure the service:
-   - **Name**: `animal-character-analyzer-app`
-   - **Branch**: `main` or `mvp-1.0`
-   - **Build Command**: `npm install && npm run build`
-   - **Publish Directory**: `dist`
-
-### Step 3: Environment Variables
-
-Add these in the Render dashboard:
-- `VITE_API_URL`: Your backend service URL (e.g., `https://animal-character-analyzer-api.onrender.com`)
-
-### Step 4: Deploy
-
-Click **"Create Static Site"** and Render will build and deploy your app.
-
-## Option 2: Deploy as Docker Container
-
-### Step 1: Update Dockerfile
-
-Ensure your `Dockerfile` is configured for Render:
-
-```dockerfile
-# Build stage
-FROM node:18-alpine as build
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-
-# Set build-time environment variable
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
-
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine
-
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built assets
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Create a script to inject runtime environment variables
-RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
-    echo 'echo "window.ENV = { VITE_API_URL: \"$VITE_API_URL\" };" > /usr/share/nginx/html/env.js' >> /docker-entrypoint.sh && \
-    echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
-    chmod +x /docker-entrypoint.sh
-
-EXPOSE 80
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
-```
-
-### Step 2: Create Web Service
-
-1. Go to Render Dashboard
-2. Click **"New +"** → **"Web Service"**
-3. Connect your repository
-4. Select **Docker** as the environment
-5. Configure:
-   - **Name**: `animal-character-analyzer-app`
-   - **Docker Build Context**: `.`
-   - **Dockerfile Path**: `./Dockerfile`
-
-### Step 3: Set Environment Variables
-
-- `VITE_API_URL`: Your backend API URL
-- `PORT`: Leave empty (Render will set this)
-
-## Option 3: Using GitHub Auto-Deploy
-
-### Step 1: Push render.yaml to Repository
-
-```bash
-git add render.yaml
-git commit -m "Add Render deployment configuration"
+# Commit and push to GitHub
+git add .
+git commit -m "Prepare for Render deployment"
 git push origin main
 ```
 
-### Step 2: Blueprint Deployment
+### Step 2: Create New Web Service on Render
 
-1. Go to Render Dashboard
-2. Click **"New +"** → **"Blueprint"**
-3. Connect your GitHub repository
-4. Render will detect `render.yaml` and create services automatically
+1. **Log in to [Render Dashboard](https://dashboard.render.com/)**
 
-## Post-Deployment Steps
+2. **Click "New +" → "Web Service"**
 
-### 1. Verify Deployment
+3. **Connect GitHub Repository**
+   - If first time: Click "Connect account" to authorize Render
+   - Search for `animal-character-analyze-app`
+   - Click "Connect"
+
+### Step 3: Configure Your Service
+
+Fill in the service configuration:
+
+#### Basic Settings
+| Setting | Value |
+|---------|-------|
+| **Name** | `animal-character-analyzer-frontend` |
+| **Region** | Choose closest to your users |
+| **Branch** | `main` or `mvp-1.0` |
+| **Root Directory** | Leave empty (uses repository root) |
+| **Environment** | `Docker` |
+| **Dockerfile Path** | `./Dockerfile` |
+
+#### Advanced Settings
+| Setting | Value |
+|---------|-------|
+| **Docker Build Context Directory** | `.` |
+| **Docker Command** | Leave empty (uses Dockerfile default) |
+| **Health Check Path** | `/health` |
+| **Auto-Deploy** | `Yes` (for automatic deploys on git push) |
+
+### Step 4: Set Environment Variables
+
+Add these environment variables in the Render dashboard:
+
+| Key | Value | Description |
+|-----|-------|-------------|
+| `VITE_API_URL` | `https://your-backend-api.onrender.com` | Your backend API URL |
+| `PORT` | `80` | Internal port (Render will map this) |
+
+**Important**: Replace `your-backend-api` with your actual backend service URL.
+
+### Step 5: Choose Instance Type
+
+For production:
+- **Starter**: $7/month - Good for most use cases
+- **Standard**: More resources for high traffic
+
+For testing:
+- **Free**: Spins down after 15 minutes of inactivity
+
+### Step 6: Deploy
+
+Click **"Create Web Service"** and Render will:
+1. Pull your code from GitHub
+2. Build the Docker image
+3. Deploy the container
+4. Provide you with a URL
+
+## Environment Configuration
+
+### Build-time vs Runtime Variables
+
+The Dockerfile supports both approaches:
+
+#### Build-time (Baked into image):
+```dockerfile
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+```
+
+#### Runtime (Dynamic):
+The container includes a script that creates `/env.js` at startup with current environment values.
+
+### Using Custom Domain
+
+1. Go to your service settings
+2. Click "Add Custom Domain"
+3. Enter your domain
+4. Update DNS records as instructed
+
+## Post-Deployment
+
+### Verify Deployment
 
 Once deployed, your frontend will be available at:
 ```
-https://animal-character-analyzer-app.onrender.com
+https://animal-character-analyzer-frontend.onrender.com
 ```
 
 Test the following:
-- Home page loads correctly
-- Camera permissions work
-- API calls reach the backend
-- Character analysis completes successfully
+1. **Home page loads**: Visit the URL
+2. **Health check works**: `https://your-app.onrender.com/health`
+3. **Camera permissions**: Test camera capture
+4. **API connectivity**: Verify image analysis works
 
-### 2. Custom Domain (Optional)
+### Monitor Your Service
 
-1. Go to your service settings in Render
-2. Add a custom domain
-3. Update DNS records as instructed
-
-### 3. Configure CORS on Backend
-
-Ensure your backend allows requests from your frontend URL:
-
-```bash
-# Update backend environment variable
-CORS_ALLOWED_ORIGINS=https://animal-character-analyzer-app.onrender.com
-```
+In the Render dashboard, you can:
+- View deployment logs
+- Monitor metrics (CPU, Memory, Network)
+- Set up alerts
+- Configure auto-scaling
 
 ## Troubleshooting
 
 ### Build Failures
 
-1. **Node version mismatch**:
-   - Add `NODE_VERSION=18` to environment variables
-   - Or add `.node-version` file with `18` in your repo
+**"Docker build failed"**
+- Check Render logs for specific errors
+- Verify Dockerfile syntax
+- Ensure all referenced files exist
 
-2. **Missing dependencies**:
-   ```bash
-   npm install --save-dev @types/node
-   ```
-
-3. **Build command errors**:
-   - Ensure all TypeScript errors are resolved
-   - Check that `npm run build` works locally
+**"Cannot find module"**
+- Verify package.json and package-lock.json are committed
+- Check for case sensitivity in imports
 
 ### Runtime Issues
 
-1. **API calls failing**:
-   - Verify `VITE_API_URL` is set correctly
-   - Check browser console for CORS errors
-   - Ensure backend is running and accessible
+**"White screen" or "404 errors"**
+- Check browser console for errors
+- Verify nginx.conf is correctly configured
+- Ensure React Router paths are handled
 
-2. **Routing not working**:
-   - Static sites need the rewrite rule in `render.yaml`
-   - Docker deployments need proper nginx configuration
+**"API calls failing"**
+- Verify `VITE_API_URL` is set correctly
+- Check for HTTPS/HTTP mismatch
+- Ensure backend allows your frontend URL
 
-3. **Assets not loading**:
-   - Check the publish directory is correct (`dist` for Vite)
-   - Verify all assets are included in the build
+**"Camera not working"**
+- HTTPS is required for camera access
+- Check browser permissions
+- Test on different devices
+
+### Container Issues
+
+**"Container exited with code 1"**
+```bash
+# Check logs in Render dashboard or:
+# Look for startup errors in nginx or missing files
+```
+
+**"Out of memory"**
+- Upgrade to a larger instance type
+- Optimize bundle size
+- Check for memory leaks
+
+## Updating Your Deployment
+
+### Automatic Updates (Recommended)
+
+With auto-deploy enabled:
+```bash
+# Make changes locally
+git add .
+git commit -m "Update feature X"
+git push origin main
+
+# Render automatically rebuilds and deploys
+```
+
+### Manual Updates
+
+1. Go to your service in Render dashboard
+2. Click "Manual Deploy"
+3. Select "Clear build cache" if needed
+4. Click "Deploy"
+
+### Updating Environment Variables
+
+1. Go to Environment section in dashboard
+2. Update variable values
+3. Click "Save Changes"
+4. Render will automatically restart with new values
+
+## Advanced Configuration
+
+### Multi-Environment Setup
+
+Create separate services for staging/production:
+
+```yaml
+# render.yaml
+services:
+  # Production
+  - type: web
+    name: animal-analyzer-frontend-prod
+    env: docker
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: VITE_API_URL
+        value: https://api-prod.onrender.com
+    
+  # Staging
+  - type: web
+    name: animal-analyzer-frontend-staging
+    env: docker
+    branch: develop
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: VITE_API_URL
+        value: https://api-staging.onrender.com
+```
 
 ### Performance Optimization
 
-1. **Enable Brotli compression** in Render settings
-2. **Set cache headers** for static assets:
-   ```yaml
-   headers:
-     - path: /assets/*
-       name: Cache-Control
-       value: public, max-age=31536000, immutable
-   ```
+1. **Enable Render CDN**: In service settings → "Enable CDN"
+2. **Configure Caching**: Already optimized in nginx.conf
+3. **Image Optimization**: Consider using WebP format
+4. **Bundle Splitting**: Implement lazy loading for routes
 
-3. **Use Render's CDN** (automatically enabled for static sites)
+### Security Best Practices
 
-## Monitoring
+1. **Use HTTPS**: Render provides free SSL certificates
+2. **Set Security Headers**: Already configured in nginx.conf
+3. **Environment Variables**: Never commit sensitive data
+4. **Regular Updates**: Keep dependencies updated
 
-- View deployment logs in the Render dashboard
-- Set up alerts for downtime
-- Monitor build times and optimize if needed
+## Cost Optimization
 
-## CI/CD Integration
+### Free Tier Limitations
+- Service spins down after 15 minutes
+- Limited to 750 hours/month
+- Manual restart required after spin-down
 
-For automatic deployments on every push:
+### Recommendations
+- Use free tier for development/testing
+- Upgrade to Starter ($7/month) for production
+- Monitor usage in Render dashboard
 
-1. Connect your GitHub repository
-2. Enable auto-deploy on push to main branch
-3. Set up preview environments for pull requests
+## Complete Example Deployment
 
-## Cost Considerations
+Here's a complete walkthrough:
 
-- **Static Site**: Free tier includes:
-  - 100 GB bandwidth/month
-  - Automatic SSL
-  - Global CDN
-
-- **Web Service**: Free tier includes:
-  - 750 hours/month
-  - Auto-sleep after 15 minutes of inactivity
-  - Manual restart required after sleep
-
-For production use, consider upgrading to a paid plan for:
-- Always-on service
-- More bandwidth
-- Team collaboration features
-
-## Security Best Practices
-
-1. **Environment Variables**: Never commit API keys to the repository
-2. **HTTPS**: Always use HTTPS URLs for API calls
-3. **Content Security Policy**: Add CSP headers in `render.yaml`
-4. **Regular Updates**: Keep dependencies updated for security patches
-
-## Deployment Checklist
-
-Before deploying, ensure:
-
-- [ ] Backend service is deployed and running
-- [ ] Backend CORS allows your frontend URL
-- [ ] All code is committed and pushed to GitHub
-- [ ] Environment variables are set correctly
-- [ ] Build runs successfully locally
-
-## Complete Deployment Example
-
-Here's a complete example deploying both frontend and backend:
-
-### 1. Deploy Backend First
 ```bash
-cd animal-character-analyze-service
-git push origin main
-# Deploy on Render as Web Service
-# Note the URL: https://animal-analyzer-api.onrender.com
-```
+# 1. Ensure backend is deployed first
+# Backend URL: https://animal-analyzer-api.onrender.com
 
-### 2. Update Backend CORS
-Set environment variable on backend:
-```
-CORS_ALLOWED_ORIGINS=https://animal-analyzer-app.onrender.com
-```
-
-### 3. Deploy Frontend
-```bash
+# 2. Update your frontend code
 cd animal-character-analyze-app
-./deploy-to-render.sh https://animal-analyzer-api.onrender.com
-git add .
-git commit -m "Configure for production deployment"
+git pull origin main
+
+# 3. Test locally with production backend
+./docker-build-and-run.sh https://animal-analyzer-api.onrender.com
+
+# 4. Push to GitHub
 git push origin main
+
+# 5. Create service on Render
+# - Name: animal-analyzer-frontend
+# - Environment: Docker
+# - Set VITE_API_URL: https://animal-analyzer-api.onrender.com
+
+# 6. Access your app
+# https://animal-analyzer-frontend.onrender.com
 ```
 
-### 4. Create Static Site on Render
-- Name: `animal-analyzer-app`
-- Build Command: `npm install && npm run build`
-- Publish Directory: `dist`
-- Environment Variable: `VITE_API_URL=https://animal-analyzer-api.onrender.com`
-
-### 5. Verify Deployment
-1. Visit: `https://animal-analyzer-app.onrender.com`
-2. Test camera functionality
-3. Verify API calls work
-4. Check character analysis completes
-
-## Support
+## Support Resources
 
 - [Render Documentation](https://render.com/docs)
-- [Render Community Forum](https://community.render.com/)
+- [Render Community](https://community.render.com/)
 - [Render Status Page](https://status.render.com/)
-- Check application logs in the Render dashboard for debugging
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 
 ## Quick Reference
 
 ### URLs After Deployment
-- Frontend: `https://[your-app-name].onrender.com`
-- Backend: `https://[your-api-name].onrender.com`
-- Health Check: `https://[your-api-name].onrender.com/api/v1/health`
+- Frontend: `https://[your-service-name].onrender.com`
+- Health Check: `https://[your-service-name].onrender.com/health`
+- Backend API: `https://[your-backend-service].onrender.com`
 
 ### Common Commands
 ```bash
 # Test build locally
-npm run build
+docker build -t test-frontend .
 
-# Preview production build
-npm run preview
+# Run locally
+docker run -p 3000:80 -e VITE_API_URL=https://api.onrender.com test-frontend
 
-# Check for TypeScript errors
-npx tsc --noEmit
-
-# Update dependencies
-npm update
+# Check image size
+docker images | grep test-frontend
 ```
+
+### Environment Variables Reference
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `VITE_API_URL` | Yes | Backend API URL | `https://api.onrender.com` |
+| `PORT` | No | Internal port (default: 80) | `80` |

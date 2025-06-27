@@ -1,39 +1,31 @@
 services:
-  # Frontend Static Site
+  # Frontend Web Service - Docker Container
   - type: web
-    name: animal-character-analyzer-app
-    runtime: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    pullRequestPreviewsEnabled: true
-    headers:
-      # Security headers
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
-        name: Referrer-Policy
-        value: strict-origin-when-cross-origin
-      # Cache static assets
-      - path: /assets/*
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
-      - path: "*.js"
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
-      - path: "*.css"
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
-    routes:
-      # SPA routing - redirect all routes to index.html
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    name: animal-character-analyzer-frontend
+    runtime: docker
+    repo: https://github.com/chung-ta1/animal-character-analyze-app
+    branch: mvp-1.0
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
     envVars:
-      - key: NODE_VERSION
-        value: "18"
       - key: VITE_API_URL
-        sync: false  # Set this manually in Render dashboard
+        value: https://animal-character-analyzer-api.onrender.com
+      - key: PORT
+        value: 80
+    # For production, change to a paid plan
+    plan: free
+    # Auto-deploy when code is pushed
+    autoDeploy: true
+    # Build and deploy settings
+    buildFilter:
+      paths:
+        - src/**
+        - public/**
+        - package*.json
+        - Dockerfile
+        - nginx.conf
+      ignoredPaths:
+        - README.md
+        - docs/**
+        - .github/**
