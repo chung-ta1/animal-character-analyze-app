@@ -106,7 +106,7 @@ describe('useCamera', () => {
     })
 
     expect(result.current.isStreaming).toBe(false)
-    mockStream.getTracks().forEach(track => {
+    mockStream.getTracks().forEach((track: any) => {
       expect(track.stop).toHaveBeenCalled()
     })
   })
@@ -176,7 +176,7 @@ describe('useCamera', () => {
 
     unmount()
 
-    mockStream.getTracks().forEach(track => {
+    mockStream.getTracks().forEach((track: any) => {
       expect(track.stop).toHaveBeenCalled()
     })
   })

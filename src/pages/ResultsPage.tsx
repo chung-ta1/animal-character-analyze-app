@@ -79,7 +79,7 @@ export default function ResultsPage() {
 
               <div>
                 <h2 className="text-2xl font-semibold mb-2">Your Story</h2>
-                <p className="text-gray-600 leading-relaxed">{result.story}</p>
+                <p className="text-gray-600 leading-relaxed">{result.personalizedStory || result.character.baseStory || result.character.description}</p>
               </div>
 
               {result.confidence && (
