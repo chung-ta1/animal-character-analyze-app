@@ -49,6 +49,19 @@ npm run dev
 
 The application will be available at `http://localhost:5173`
 
+## Docker Deployment
+
+### Quick Start with Docker
+```bash
+# Build and run as container
+./docker-build-and-run.sh
+
+# Or with custom backend URL
+./docker-build-and-run.sh https://your-backend-api.com
+```
+
+See [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md) for detailed Docker instructions.
+
 ## Available Scripts
 
 - `npm run dev` - Start development server

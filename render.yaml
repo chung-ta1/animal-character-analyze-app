@@ -1,0 +1,31 @@
+services:
+  # Frontend Web Service - Docker Container
+  - type: web
+    name: animal-character-analyzer-frontend
+    runtime: docker
+    repo: https://github.com/chung-ta1/animal-character-analyze-app
+    branch: mvp-1.0
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: VITE_API_URL
+        value: https://animal-character-analyzer-api.onrender.com
+      - key: PORT
+        value: 80
+    # For production, change to a paid plan
+    plan: free
+    # Auto-deploy when code is pushed
+    autoDeploy: true
+    # Build and deploy settings
+    buildFilter:
+      paths:
+        - src/**
+        - public/**
+        - package*.json
+        - Dockerfile
+        - nginx.conf
+      ignoredPaths:
+        - README.md
+        - docs/**
+        - .github/**
